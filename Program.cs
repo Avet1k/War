@@ -132,8 +132,7 @@ class Battle
             Console.WriteLine("\n\n");
             _secondPlatoon.DrawSoldiers();
             
-            Console.WriteLine("\n\nНажмите любую кнопку для продолжения...");
-            Console.ReadKey();
+            Thread.Sleep(100);
         }
 
         if (_firstPlatoon.GetAliveSoldiersCount() == 0)
