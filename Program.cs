@@ -16,10 +16,9 @@ class Soldier
     private int _damage;
     private int _accuracy;
     private int _maxAccuracy = 9;
-    private Platoon _platoon;
     private Random _random;
 
-    public Soldier(Platoon platoon)
+    public Soldier()
     {
         int minHealth = 10;
         int maxHealth = 20;
@@ -32,15 +31,16 @@ class Soldier
         Health = _random.Next(minHealth, maxHealth);
         _damage = _random.Next(minDamage, maxDamage);
         _accuracy = _random.Next(minAccuracy, _maxAccuracy);
-        _platoon = platoon;
     }
 
     public int Health { get; private set;  }
     
-    public void Attack(Soldier enemy)
+    public bool TryToKill(Soldier enemy)
     {
         if (_random.Next(_maxAccuracy) < _accuracy)
             enemy.TakeDamage(_damage);
+
+        return enemy.Health == 0;
     }
 
     private void TakeDamage(int damage)
@@ -51,7 +51,6 @@ class Soldier
             return;
         
         Health = 0;
-        _platoon.RemoveDead(this);
     }
 }
 
@@ -68,7 +67,7 @@ class Platoon
         
         for (int i = 0; i < _capacity; i++)
         {
-            _aliveSoldiers.Add(new Soldier(this));
+            _aliveSoldiers.Add(new Soldier());
             _soldiersForDraw[i] = _aliveSoldiers[i];
         }
 
@@ -82,11 +81,6 @@ class Platoon
         return _aliveSoldiers.Count;
     }
 
-    public Soldier GetSoldierByIndex(int index)
-    {
-        return _aliveSoldiers[index];
-    }
-
     public void DrawSoldiers()
     {
         foreach (Soldier soldier in _soldiersForDraw)
@@ -95,7 +89,23 @@ class Platoon
         Console.WriteLine();
     }
 
-    public void RemoveDead(Soldier deadSoldier)
+    public void AttackSoldier(Platoon enemies)
+    {
+        Random random = new Random();
+        
+        Soldier attacker = GetSoldierByIndex(random.Next(GetAliveSoldiersCount()));
+        Soldier defender = enemies.GetSoldierByIndex(random.Next(enemies.GetAliveSoldiersCount()));
+        
+        if (attacker.TryToKill(defender))
+            enemies.RemoveDead(defender);
+    }
+
+    private Soldier GetSoldierByIndex(int index)
+    {
+        return _aliveSoldiers[index];
+    }
+
+    private void RemoveDead(Soldier deadSoldier)
     {
         _aliveSoldiers.Remove(deadSoldier);
     }
@@ -119,12 +129,10 @@ class Battle
         while(_firstPlatoon.GetAliveSoldiersCount() > 0 &&
               _secondPlatoon.GetAliveSoldiersCount() > 0)
         {
-            Random random = new Random();
-
-            Attack(_firstPlatoon, _secondPlatoon);
+            _firstPlatoon.AttackSoldier(_secondPlatoon);
             
             if (_secondPlatoon.GetAliveSoldiersCount() > 0)
-                Attack(_secondPlatoon, _firstPlatoon);
+                _secondPlatoon.AttackSoldier(_firstPlatoon);
 
             Console.Clear();
             
@@ -141,15 +149,5 @@ class Battle
             winner = _firstPlatoon.Name;
         
         Console.WriteLine($"\n\nПобедил взвод {winner}");
-    }
-
-    private void Attack(Platoon attacker, Platoon defender)
-    {
-        Random random = new Random();
-        
-        Soldier attackerSoldier = attacker.GetSoldierByIndex(random.Next(attacker.GetAliveSoldiersCount()));
-        Soldier defenderSoldier = defender.GetSoldierByIndex(random.Next(defender.GetAliveSoldiersCount()));
-        
-        attackerSoldier.Attack(defenderSoldier);
     }
 }
