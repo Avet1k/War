@@ -124,7 +124,7 @@ class Battle
 
     public void Fight()
     {
-        string winner;
+        Platoon winner;
         
         while(_firstPlatoon.GetAliveSoldiersCount() > 0 &&
               _secondPlatoon.GetAliveSoldiersCount() > 0)
@@ -143,11 +143,16 @@ class Battle
             Thread.Sleep(100);
         }
 
-        if (_firstPlatoon.GetAliveSoldiersCount() == 0)
-            winner = _secondPlatoon.Name;
-        else
-            winner = _firstPlatoon.Name;
+        winner = DetermineWinner();
         
-        Console.WriteLine($"\n\nПобедил взвод {winner}");
+        Console.WriteLine($"\n\nПобедил взвод {winner.Name}");
+    }
+
+    private Platoon DetermineWinner()
+    {
+        if (_firstPlatoon.GetAliveSoldiersCount() == 0)
+            return _secondPlatoon;
+        
+        return _firstPlatoon;
     }
 }
